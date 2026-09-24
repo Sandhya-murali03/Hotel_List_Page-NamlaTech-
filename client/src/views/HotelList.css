@@ -1,41 +1,47 @@
 .hotel-list-page {
+  width: 100%;
   min-height: 100vh;
-  padding: 40px;
+
+  padding: 40px 50px;
+
   background: #f8fafc;
 }
 
-/* --------------------------------
-   Header
---------------------------------- */
-
 .hotel-header {
-  max-width: 1200px;
+  width: 100%;
+  max-width: 1400px;
+
   margin: 0 auto 30px;
 
   display: flex;
   justify-content: space-between;
   align-items: center;
+
+  gap: 30px;
 }
 
 .hotel-header h1 {
-  margin: 0;
+  margin: 0 0 6px;
 
   font-size: 32px;
   font-weight: 700;
 
-  background: linear-gradient(
-    90deg,
-    #2563eb,
-    #7c3aed
-  );
+  background:
+    linear-gradient(
+      90deg,
+      #2563eb,
+      #7c3aed
+    );
 
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 
-/* --------------------------------
-   Add Hotel Button
---------------------------------- */
+.hotel-subtitle {
+  color: #6b7280;
+
+  font-size: 14px;
+}
 
 .add-hotel-button {
   padding: 12px 22px;
@@ -43,11 +49,12 @@
   border: none;
   border-radius: 10px;
 
-  background: linear-gradient(
-    135deg,
-    #2563eb,
-    #7c3aed
-  );
+  background:
+    linear-gradient(
+      135deg,
+      #2563eb,
+      #7c3aed
+    );
 
   color: #ffffff;
 
@@ -55,6 +62,8 @@
   font-weight: 600;
 
   cursor: pointer;
+
+  white-space: nowrap;
 
   box-shadow:
     0 5px 15px rgba(37, 99, 235, 0.2);
@@ -71,17 +80,11 @@
     0 8px 20px rgba(37, 99, 235, 0.3);
 }
 
-.add-hotel-button:active {
-  transform: scale(0.96);
-}
-
-/* --------------------------------
-   Hotel Count
---------------------------------- */
-
 .hotel-count {
-  max-width: 1200px;
-  margin: -10px auto 25px;
+  width: 100%;
+  max-width: 1400px;
+
+  margin: 0 auto 25px;
 
   color: #6b7280;
 
@@ -89,11 +92,12 @@
   font-weight: 500;
 }
 
-/* --------------------------------
-   Hotel Grid
---------------------------------- */
-
 .hotel-grid {
+  width: 100%;
+  max-width: 1400px;
+
+  margin: 0 auto;
+
   display: grid;
 
   grid-template-columns:
@@ -104,20 +108,20 @@
 
   gap: 28px;
 
-  max-width: 1200px;
-  margin: 0 auto;
-
-  animation: fadeIn 0.4s ease;
+  animation:
+    fadeIn 0.4s ease;
 }
 
-/* --------------------------------
-   No Hotels Found
---------------------------------- */
+.hotel-grid .hotel-card {
+  max-width: none;
+}
 
 .no-hotels {
+  width: 100%;
   max-width: 500px;
 
   margin: 60px auto;
+
   padding: 40px;
 
   text-align: center;
@@ -125,12 +129,11 @@
   background: #ffffff;
 
   border: 1px solid #e5e7eb;
+
   border-radius: 16px;
 
   box-shadow:
     0 10px 30px rgba(37, 99, 235, 0.1);
-
-  animation: fadeIn 0.4s ease;
 }
 
 .no-hotels h3 {
@@ -149,10 +152,6 @@
   font-size: 14px;
 }
 
-/* --------------------------------
-   Smooth Page Animation
---------------------------------- */
-
 @keyframes fadeIn {
   from {
     opacity: 0;
@@ -165,64 +164,31 @@
   }
 }
 
-/* --------------------------------
-   Smooth Scrolling
---------------------------------- */
-
-html {
-  scroll-behavior: smooth;
-}
-
-/* --------------------------------
-   Responsive Design
---------------------------------- */
-
-@media (max-width: 768px) {
+@media (max-width: 900px) {
   .hotel-list-page {
-    padding: 25px;
+    padding: 30px;
   }
 
   .hotel-header {
     flex-direction: column;
-
-    gap: 18px;
-
     align-items: stretch;
-  }
-
-  .hotel-header h1 {
-    text-align: center;
-
-    font-size: 28px;
   }
 
   .add-hotel-button {
     width: 100%;
   }
-
-  .hotel-grid {
-    grid-template-columns: 1fr;
-  }
 }
 
-/* --------------------------------
-   Small Mobile Screens
---------------------------------- */
-
-@media (max-width: 480px) {
+@media (max-width: 600px) {
   .hotel-list-page {
-    padding: 18px;
+    padding: 20px 15px;
   }
 
   .hotel-header h1 {
-    font-size: 25px;
+    font-size: 27px;
   }
 
-  .hotel-count {
-    text-align: center;
-  }
-
-  .no-hotels {
-    padding: 30px 20px;
+  .hotel-grid {
+    grid-template-columns: 1fr;
   }
 }

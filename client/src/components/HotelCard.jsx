@@ -1,12 +1,16 @@
+import { useNavigate } from "react-router-dom";
 import "./HotelCard.css";
 
-function HotelCard({ hotel }) {
+function HotelCard({ hotel, onDelete }) {
+  const navigate = useNavigate();
+
   return (
     <div className="hotel-card">
       <img
         src={hotel.image}
         alt={hotel.title}
         className="hotel-image"
+        onClick={() => navigate(`/hotel/${hotel.id}`)}
       />
 
       <div className="hotel-content">
@@ -21,8 +25,24 @@ function HotelCard({ hotel }) {
         </p>
 
         <div className="hotel-actions">
-          <button className="edit-button">Edit</button>
-          <button className="delete-button">Delete</button>
+          <button
+            type="button"
+            className="edit-button"
+            onClick={() => navigate(`/edit/${hotel.id}`)}
+          >
+            Edit
+          </button>
+
+          <button
+            type="button"
+            className="delete-button"
+            onClick={() => {
+              console.log("DELETE BUTTON CLICKED");
+              onDelete(hotel);
+            }}
+          >
+            Delete
+          </button>
         </div>
       </div>
     </div>
