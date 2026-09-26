@@ -1,16 +1,21 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+
+import {
+  addHotel,
+  getHotelById,
+  updateHotel,
+} from "../services/hotelApi";
+
 import "./HotelFormPage.css";
+
+const API_BASE_URL = "http://localhost:5000";
 
 function HotelFormPage() {
   const navigate = useNavigate();
   const { id } = useParams();
 
   const isEditMode = Boolean(id);
-
-  // -----------------------------
-  // Form State
-  // -----------------------------
 
   const [formData, setFormData] = useState({
     title: "",
@@ -25,9 +30,59 @@ function HotelFormPage() {
 
   const [errors, setErrors] = useState({});
 
-  // -----------------------------
-  // Handle Input
-  // -----------------------------
+  const [loading, setLoading] = useState(false);
+  const [pageLoading, setPageLoading] = useState(false);
+
+  // =========================
+  // LOAD HOTEL FOR EDIT
+  // =========================
+
+  useEffect(() => {
+    if (!isEditMode) return;
+
+    const loadHotel = async () => {
+      try {
+        setPageLoading(true);
+
+        const data = await getHotelById(id);
+
+        if (data.success) {
+          const hotel = data.hotel;
+
+          setFormData({
+            title: hotel.title || "",
+            description: hotel.description || "",
+            latitude: hotel.latitude || "",
+            longitude: hotel.longitude || "",
+            price: hotel.price || "",
+          });
+
+          if (hotel.image) {
+            setImagePreview(
+              `${API_BASE_URL}${hotel.image}`
+            );
+          }
+        }
+      } catch (error) {
+        console.error(
+          "Failed to load hotel:",
+          error
+        );
+
+        alert("Failed to load hotel details.");
+
+        navigate("/");
+      } finally {
+        setPageLoading(false);
+      }
+    };
+
+    loadHotel();
+  }, [id, isEditMode, navigate]);
+
+  // =========================
+  // INPUT CHANGE
+  // =========================
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -43,16 +98,14 @@ function HotelFormPage() {
     }));
   };
 
-  // -----------------------------
-  // Handle Image
-  // -----------------------------
+  // =========================
+  // IMAGE CHANGE
+  // =========================
 
   const handleImageChange = (e) => {
     const selectedImage = e.target.files[0];
 
-    if (!selectedImage) {
-      return;
-    }
+    if (!selectedImage) return;
 
     setImage(selectedImage);
 
@@ -66,15 +119,16 @@ function HotelFormPage() {
     }));
   };
 
-  // -----------------------------
-  // Validation
-  // -----------------------------
+  // =========================
+  // VALIDATION
+  // =========================
 
   const validateForm = () => {
     const newErrors = {};
 
     if (!formData.title.trim()) {
-      newErrors.title = "Hotel title is required.";
+      newErrors.title =
+        "Hotel title is required.";
     }
 
     if (!formData.description.trim()) {
@@ -86,6 +140,7 @@ function HotelFormPage() {
       newErrors.latitude =
         "Latitude is required.";
     } else if (
+      isNaN(formData.latitude) ||
       Number(formData.latitude) < -90 ||
       Number(formData.latitude) > 90
     ) {
@@ -97,6 +152,7 @@ function HotelFormPage() {
       newErrors.longitude =
         "Longitude is required.";
     } else if (
+      isNaN(formData.longitude) ||
       Number(formData.longitude) < -180 ||
       Number(formData.longitude) > 180
     ) {
@@ -107,11 +163,15 @@ function HotelFormPage() {
     if (!formData.price) {
       newErrors.price =
         "Price is required.";
-    } else if (Number(formData.price) <= 0) {
+    } else if (
+      isNaN(formData.price) ||
+      Number(formData.price) <= 0
+    ) {
       newErrors.price =
         "Price must be greater than 0.";
     }
 
+    // Image required only while adding
     if (!isEditMode && !image) {
       newErrors.image =
         "Hotel image is required.";
@@ -122,48 +182,138 @@ function HotelFormPage() {
     return Object.keys(newErrors).length === 0;
   };
 
-  // -----------------------------
-  // Submit
-  // -----------------------------
+  // =========================
+  // SUBMIT
+  // =========================
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
-    const isValid = validateForm();
-
-    if (!isValid) {
+    if (!validateForm()) {
       return;
     }
 
-    console.log(
-      isEditMode
-        ? "Updating hotel..."
-        : "Adding hotel..."
-    );
+    try {
+      setLoading(true);
 
-    console.log(formData);
-    console.log(image);
+      const data = new FormData();
 
-    // Temporary navigation
-    navigate("/");
+      data.append(
+        "title",
+        formData.title
+      );
+
+      data.append(
+        "description",
+        formData.description
+      );
+
+      data.append(
+        "latitude",
+        formData.latitude
+      );
+
+      data.append(
+        "longitude",
+        formData.longitude
+      );
+
+      data.append(
+        "price",
+        formData.price
+      );
+
+      if (image) {
+        data.append("image", image);
+      }
+
+      // EDIT
+      if (isEditMode) {
+
+        const response =
+          await updateHotel(id, data);
+
+        if (response.success) {
+          alert(
+            "Hotel updated successfully!"
+          );
+
+          navigate("/");
+        }
+
+      } else {
+
+        // ADD
+
+        const response =
+          await addHotel(data);
+
+        if (response.success) {
+          alert(
+            "Hotel added successfully!"
+          );
+
+          navigate("/");
+        }
+      }
+
+    } catch (error) {
+
+      console.error(
+        "Save hotel error:",
+        error
+      );
+
+      const message =
+        error.response?.data?.message ||
+        "Failed to save hotel.";
+
+      alert(message);
+
+    } finally {
+      setLoading(false);
+    }
   };
 
-  // -----------------------------
-  // Cancel
-  // -----------------------------
+  // =========================
+  // CANCEL
+  // =========================
 
   const handleCancel = () => {
     navigate("/");
   };
+
+  // =========================
+  // PAGE LOADING
+  // =========================
+
+  if (pageLoading) {
+    return (
+      <div className="hotel-form-page">
+
+        <div className="hotel-form-container">
+
+          <h2>
+            Loading hotel...
+          </h2>
+
+        </div>
+
+      </div>
+    );
+  }
+
+  // =========================
+  // FORM UI
+  // =========================
 
   return (
     <div className="hotel-form-page">
 
       <div className="hotel-form-container">
 
-        {/* Header */}
-
         <div className="form-header">
+
           <h1>
             {isEditMode
               ? "Edit Hotel"
@@ -175,27 +325,29 @@ function HotelFormPage() {
               ? "Update the hotel information below."
               : "Enter the details to add a new hotel."}
           </p>
-        </div>
 
-        {/* Form */}
+        </div>
 
         <form
           className="hotel-form"
           onSubmit={handleSubmit}
         >
 
-          {/* Image Upload */}
+          {/* IMAGE */}
 
           <div className="form-group">
 
             <label>
               Hotel Image
-              <span className="required">*</span>
+              <span className="required">
+                *
+              </span>
             </label>
 
             <div className="image-upload-area">
 
               {imagePreview ? (
+
                 <div className="image-preview-container">
 
                   <img
@@ -212,23 +364,28 @@ function HotelFormPage() {
                   </label>
 
                 </div>
+
               ) : (
+
                 <label
                   htmlFor="hotel-image"
                   className="upload-box"
                 >
+
                   <span className="upload-icon">
-                    📷
+                    
                   </span>
 
                   <span className="upload-title">
-                    Upload Hotel Image
+                    
                   </span>
 
                   <span className="upload-text">
                     Click to choose an image
                   </span>
+
                 </label>
+
               )}
 
               <input
@@ -241,20 +398,24 @@ function HotelFormPage() {
             </div>
 
             {errors.image && (
+
               <p className="error-message">
                 {errors.image}
               </p>
+
             )}
 
           </div>
 
-          {/* Title */}
+          {/* TITLE */}
 
           <div className="form-group">
 
             <label htmlFor="title">
               Hotel Title
-              <span className="required">*</span>
+              <span className="required">
+                *
+              </span>
             </label>
 
             <input
@@ -267,20 +428,24 @@ function HotelFormPage() {
             />
 
             {errors.title && (
+
               <p className="error-message">
                 {errors.title}
               </p>
+
             )}
 
           </div>
 
-          {/* Description */}
+          {/* DESCRIPTION */}
 
           <div className="form-group">
 
             <label htmlFor="description">
               Description
-              <span className="required">*</span>
+              <span className="required">
+                *
+              </span>
             </label>
 
             <textarea
@@ -293,24 +458,26 @@ function HotelFormPage() {
             />
 
             {errors.description && (
+
               <p className="error-message">
                 {errors.description}
               </p>
+
             )}
 
           </div>
 
-          {/* Location */}
+          {/* LOCATION */}
 
           <div className="location-row">
-
-            {/* Latitude */}
 
             <div className="form-group">
 
               <label htmlFor="latitude">
                 Latitude
-                <span className="required">*</span>
+                <span className="required">
+                  *
+                </span>
               </label>
 
               <input
@@ -318,26 +485,28 @@ function HotelFormPage() {
                 name="latitude"
                 type="number"
                 step="any"
-                placeholder="Example: 10.7905"
+                placeholder="Example: 13.010574"
                 value={formData.latitude}
                 onChange={handleChange}
               />
 
               {errors.latitude && (
+
                 <p className="error-message">
                   {errors.latitude}
                 </p>
+
               )}
 
             </div>
-
-            {/* Longitude */}
 
             <div className="form-group">
 
               <label htmlFor="longitude">
                 Longitude
-                <span className="required">*</span>
+                <span className="required">
+                  *
+                </span>
               </label>
 
               <input
@@ -345,28 +514,32 @@ function HotelFormPage() {
                 name="longitude"
                 type="number"
                 step="any"
-                placeholder="Example: 78.7047"
+                placeholder="Example: 80.220194"
                 value={formData.longitude}
                 onChange={handleChange}
               />
 
               {errors.longitude && (
+
                 <p className="error-message">
                   {errors.longitude}
                 </p>
+
               )}
 
             </div>
 
           </div>
 
-          {/* Price */}
+          {/* PRICE */}
 
           <div className="form-group">
 
             <label htmlFor="price">
               Price per Night
-              <span className="required">*</span>
+              <span className="required">
+                *
+              </span>
             </label>
 
             <div className="price-input">
@@ -386,14 +559,16 @@ function HotelFormPage() {
             </div>
 
             {errors.price && (
+
               <p className="error-message">
                 {errors.price}
               </p>
+
             )}
 
           </div>
 
-          {/* Buttons */}
+          {/* BUTTONS */}
 
           <div className="form-actions">
 
@@ -401,6 +576,7 @@ function HotelFormPage() {
               type="button"
               className="cancel-button"
               onClick={handleCancel}
+              disabled={loading}
             >
               Cancel
             </button>
@@ -408,8 +584,11 @@ function HotelFormPage() {
             <button
               type="submit"
               className="submit-button"
+              disabled={loading}
             >
-              {isEditMode
+              {loading
+                ? "Saving..."
+                : isEditMode
                 ? "Update Hotel"
                 : "Add Hotel"}
             </button>

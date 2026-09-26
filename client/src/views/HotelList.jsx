@@ -2,232 +2,340 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
+import {
+  getHotels,
+  deleteHotel,
+} from "../services/hotelApi";
+
 import HotelCard from "../components/HotelCard";
 import SearchFilter from "../components/SearchFilter";
 import Pagination from "../components/Pagination";
 import DeleteConfirm from "../components/DeleteConfirm";
 import SuccessPopup from "../components/SuccessPopup";
 
-import hotel1 from "../assets/images/hotel1.jpeg";
-import hotel2 from "../assets/images/hotel2.jpeg";
-import hotel3 from "../assets/images/hotel3.jpeg";
-import hotel4 from "../assets/images/hotel4.jpeg";
-import hotel5 from "../assets/images/hotel5.jpeg";
-import hotel6 from "../assets/images/hotel6.jpeg";
-
 import "./HotelList.css";
+
+// Backend server URL
+const API_BASE_URL = "http://localhost:5000";
 
 function HotelList() {
   const navigate = useNavigate();
 
-  // --------------------------------
-  // Hotel Data
-  // --------------------------------
-  const [hotels, setHotels] = useState([
-    {
-      id: 1,
-      image: hotel1,
-      title: "The Taj Mahal Palace",
-      location: "Apollo Bunder, Colaba, Mumbai, Maharashtra",
-      description:
-        "A landmark luxury hotel overlooking the Gateway of India in Mumbai.",
-      price: 25000,
-      latitude: 18.921778,
-      longitude: 72.833285,
-    },
+  const [hotels, setHotels] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
-    {
-      id: 2,
-      image: hotel2,
-      title: "ITC Grand Chola",
-      location: "63, Anna Salai, Guindy, Chennai, Tamil Nadu",
-      description:
-        "A luxury hotel in Chennai inspired by the architectural heritage of the Chola dynasty.",
-      price: 18000,
-      latitude: 13.010574,
-      longitude: 80.220194,
-    },
-
-    {
-      id: 3,
-      image: hotel3,
-      title: "The Leela Palace Bengaluru",
-      location: "23, Old Airport Road, Bengaluru, Karnataka",
-      description:
-        "A luxury palace-style hotel located on Old Airport Road in Bengaluru.",
-      price: 22000,
-      latitude: 12.960569,
-      longitude: 77.648481,
-    },
-
-    {
-      id: 4,
-      image: hotel4,
-      title: "Taj Falaknuma Palace",
-      location: "Falaknuma, Hyderabad, Telangana",
-      description:
-        "A historic palace property offering a royal luxury experience in Hyderabad.",
-      price: 30000,
-      latitude: 17.33099,
-      longitude: 78.46715,
-    },
-
-    {
-      id: 5,
-      image: hotel5,
-      title: "The Oberoi Udaivilas",
-      location: "Haridasji Ki Magri, Udaipur, Rajasthan",
-      description:
-        "A luxury resort overlooking Lake Pichola in the historic city of Udaipur.",
-      price: 35000,
-      latitude: 24.57718,
-      longitude: 73.67253,
-    },
-
-    {
-      id: 6,
-      image: hotel6,
-      title: "The Tamara Coorg",
-      location: "Kabbinakad Estate, Yavakapadi, Coorg, Karnataka",
-      description:
-        "A nature-focused luxury resort surrounded by the hills and plantations of Coorg.",
-      price: 16000,
-      latitude: 12.22578,
-      longitude: 75.64938,
-    },
-  ]);
-
-  // --------------------------------
-  // Search & Price Filter
-  // --------------------------------
   const [searchTerm, setSearchTerm] = useState("");
   const [minPrice, setMinPrice] = useState("");
   const [maxPrice, setMaxPrice] = useState("");
 
-  // --------------------------------
-  // Pagination
-  // --------------------------------
   const [currentPage, setCurrentPage] = useState(1);
+
+  const [hotelToDelete, setHotelToDelete] =
+    useState(null);
+
+  const [successMessage, setSuccessMessage] =
+    useState("");
 
   const hotelsPerPage = 3;
 
-  // --------------------------------
-  // Delete Popup
-  // --------------------------------
-  const [hotelToDelete, setHotelToDelete] = useState(null);
+  // ==============================
+  // FETCH HOTELS
+  // ==============================
+  useEffect(() => {
+    const loadHotels = async () => {
+      try {
+        setLoading(true);
+        setError("");
 
-  // --------------------------------
-  // Success Popup
-  // --------------------------------
-  const [successMessage, setSuccessMessage] = useState("");
+        const data = await getHotels();
 
-  // --------------------------------
-  // Reset Pagination
-  // --------------------------------
+        console.log("Backend response:", data);
+
+        if (!data.success) {
+          setError(
+            data.message ||
+              "Failed to load hotels."
+          );
+          return;
+        }
+
+        const formattedHotels =
+          (data.hotels || []).map((hotel) => {
+            let imageUrl = "";
+
+            if (hotel.image) {
+              // If backend already returns a complete URL
+              if (
+                hotel.image.startsWith("http")
+              ) {
+                imageUrl = hotel.image;
+              }
+
+              // If backend returns /uploads/...
+              else if (
+                hotel.image.startsWith("/")
+              ) {
+                imageUrl =
+                  `${API_BASE_URL}${hotel.image}`;
+              }
+
+              // Fallback
+              else {
+                imageUrl =
+                  `${API_BASE_URL}/${hotel.image}`;
+              }
+            }
+
+            return {
+              ...hotel,
+              price: Number(hotel.price),
+              image: imageUrl,
+            };
+          });
+
+        console.log(
+          "Formatted hotels:",
+          formattedHotels
+        );
+
+        setHotels(formattedHotels);
+      } catch (error) {
+        console.error(
+          "GET HOTELS ERROR:",
+          error
+        );
+
+        if (error.response) {
+          setError(
+            error.response.data?.message ||
+              `Server error: ${error.response.status}`
+          );
+        } else if (error.request) {
+          setError(
+            "Backend server is not responding. Please start the server."
+          );
+        } else {
+          setError(
+            error.message ||
+              "Failed to load hotels."
+          );
+        }
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadHotels();
+  }, []);
+
+  // ==============================
+  // RESET PAGE WHEN FILTER CHANGES
+  // ==============================
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchTerm, minPrice, maxPrice]);
+  }, [
+    searchTerm,
+    minPrice,
+    maxPrice,
+  ]);
 
-  // --------------------------------
-  // Filter Hotels
-  // --------------------------------
-  const filteredHotels = hotels.filter((hotel) => {
-    const searchMatch = hotel.title
-      .toLowerCase()
-      .includes(searchTerm.toLowerCase());
+  // ==============================
+  // SEARCH + PRICE FILTER
+  // ==============================
+  const filteredHotels = hotels.filter(
+    (hotel) => {
+      const title =
+        hotel.title || "";
 
-    const minMatch =
-      minPrice === "" ||
-      hotel.price >= Number(minPrice);
+      const price =
+        Number(hotel.price) || 0;
 
-    const maxMatch =
-      maxPrice === "" ||
-      hotel.price <= Number(maxPrice);
+      const searchMatch =
+        title
+          .toLowerCase()
+          .includes(
+            searchTerm.toLowerCase()
+          );
 
-    return searchMatch && minMatch && maxMatch;
-  });
+      const minMatch =
+        minPrice === "" ||
+        price >= Number(minPrice);
 
-  // --------------------------------
-  // Pagination
-  // --------------------------------
+      const maxMatch =
+        maxPrice === "" ||
+        price <= Number(maxPrice);
+
+      return (
+        searchMatch &&
+        minMatch &&
+        maxMatch
+      );
+    }
+  );
+
+  // ==============================
+  // PAGINATION
+  // ==============================
   const totalPages = Math.ceil(
-    filteredHotels.length / hotelsPerPage
+    filteredHotels.length /
+      hotelsPerPage
   );
 
   const startIndex =
-    (currentPage - 1) * hotelsPerPage;
+    (currentPage - 1) *
+    hotelsPerPage;
 
-  const currentHotels = filteredHotels.slice(
-    startIndex,
-    startIndex + hotelsPerPage
-  );
+  const currentHotels =
+    filteredHotels.slice(
+      startIndex,
+      startIndex + hotelsPerPage
+    );
 
-  // --------------------------------
-  // Delete
-  // --------------------------------
+  // ==============================
+  // DELETE
+  // ==============================
   const handleDeleteClick = (hotel) => {
     setHotelToDelete(hotel);
   };
 
-  const handleDeleteConfirm = () => {
-    if (!hotelToDelete) {
-      return;
-    }
+  const handleDeleteConfirm =
+    async () => {
+      if (!hotelToDelete) {
+        return;
+      }
 
-    const deletedTitle = hotelToDelete.title;
+      try {
+        setError("");
 
-    setHotels((previousHotels) =>
-      previousHotels.filter(
-        (hotel) => hotel.id !== hotelToDelete.id
-      )
-    );
+        const response =
+          await deleteHotel(
+            hotelToDelete.id
+          );
 
-    setHotelToDelete(null);
+        console.log(
+          "Delete response:",
+          response
+        );
 
-    setSuccessMessage(
-      `${deletedTitle} deleted successfully.`
-    );
-  };
+        if (response.success) {
+          const deletedTitle =
+            hotelToDelete.title;
+
+          setHotels(
+            (previousHotels) =>
+              previousHotels.filter(
+                (hotel) =>
+                  hotel.id !==
+                  hotelToDelete.id
+              )
+          );
+
+          setHotelToDelete(null);
+
+          setSuccessMessage(
+            `${deletedTitle} deleted successfully.`
+          );
+
+          // If deleting the last item
+          // on the current page
+          if (
+            currentHotels.length === 1 &&
+            currentPage > 1
+          ) {
+            setCurrentPage(
+              currentPage - 1
+            );
+          }
+        } else {
+          setError(
+            response.message ||
+              "Failed to delete hotel."
+          );
+
+          setHotelToDelete(null);
+        }
+      } catch (error) {
+        console.error(
+          "DELETE HOTEL ERROR:",
+          error
+        );
+
+        setHotelToDelete(null);
+
+        setError(
+          error.response?.data
+            ?.message ||
+            error.message ||
+            "Failed to delete hotel."
+        );
+      }
+    };
 
   const handleDeleteCancel = () => {
     setHotelToDelete(null);
   };
 
-  // --------------------------------
-  // Close Success Popup
-  // --------------------------------
+  // ==============================
+  // SUCCESS POPUP
+  // ==============================
   const handleSuccessClose = () => {
     setSuccessMessage("");
   };
 
-  // --------------------------------
+  // ==============================
+  // LOADING
+  // ==============================
+  if (loading) {
+    return (
+      <div className="hotel-list-page">
+        <div className="loading-message">
+          <h2>Loading hotels...</h2>
+          <p>
+            Connecting to the hotel server...
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  // ==============================
   // UI
-  // --------------------------------
+  // ==============================
   return (
     <div className="hotel-list-page">
 
-      {/* Header */}
+      {/* HEADER */}
       <div className="hotel-header">
-
         <div>
           <h1>Our Hotels</h1>
 
           <p className="hotel-subtitle">
-            Find the perfect stay for your journey
+            Find the perfect stay for
+            your journey
           </p>
         </div>
 
         <button
           type="button"
           className="add-hotel-button"
-          onClick={() => navigate("/add")}
+          onClick={() =>
+            navigate("/add")
+          }
         >
           + Add Hotel
         </button>
-
       </div>
 
-      {/* Search & Filter */}
+      {/* ERROR MESSAGE */}
+      {error && (
+        <div className="error-message">
+          <strong>Error:</strong>{" "}
+          {error}
+        </div>
+      )}
+
+      {/* SEARCH + FILTER */}
       <SearchFilter
         searchTerm={searchTerm}
         setSearchTerm={setSearchTerm}
@@ -237,66 +345,75 @@ function HotelList() {
         setMaxPrice={setMaxPrice}
       />
 
-      {/* Hotel Count */}
+      {/* HOTEL COUNT */}
       <p className="hotel-count">
         {filteredHotels.length} hotel
-        {filteredHotels.length !== 1 ? "s" : ""} found
+        {filteredHotels.length !== 1
+          ? "s"
+          : ""}{" "}
+        found
       </p>
 
-      {/* Hotel Cards */}
+      {/* HOTEL CARDS */}
       {currentHotels.length > 0 ? (
-
         <div className="hotel-grid">
-
-          {currentHotels.map((hotel) => (
-            <HotelCard
-              key={hotel.id}
-              hotel={hotel}
-              onDelete={handleDeleteClick}
-            />
-          ))}
-
+          {currentHotels.map(
+            (hotel) => (
+              <HotelCard
+                key={hotel.id}
+                hotel={hotel}
+                onDelete={
+                  handleDeleteClick
+                }
+              />
+            )
+          )}
         </div>
-
       ) : (
-
         <div className="no-hotels">
           <h3>No hotels found</h3>
 
           <p>
-            Try changing your search or price filters.
+            {hotels.length === 0
+              ? "No hotels are available in the database yet."
+              : "Try changing your search or price filters."}
           </p>
         </div>
-
       )}
 
-      {/* Pagination */}
+      {/* PAGINATION */}
       {totalPages > 1 && (
         <Pagination
           currentPage={currentPage}
           totalPages={totalPages}
-          setCurrentPage={setCurrentPage}
+          setCurrentPage={
+            setCurrentPage
+          }
         />
       )}
 
-      {/* Delete Confirmation */}
+      {/* DELETE CONFIRMATION */}
       <DeleteConfirm
         hotel={hotelToDelete}
-        onConfirm={handleDeleteConfirm}
-        onCancel={handleDeleteCancel}
+        onConfirm={
+          handleDeleteConfirm
+        }
+        onCancel={
+          handleDeleteCancel
+        }
       />
 
-      {/* Success Popup */}
+      {/* SUCCESS POPUP */}
       {successMessage && (
         <SuccessPopup
           message={successMessage}
-          onClose={handleSuccessClose}
+          onClose={
+            handleSuccessClose
+          }
         />
       )}
-
     </div>
   );
 }
 
 export default HotelList;
-

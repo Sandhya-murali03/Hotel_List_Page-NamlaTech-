@@ -11,6 +11,7 @@ import HotelDetails from "./views/HotelDetails";
 function App() {
   return (
     <BrowserRouter>
+
       <Routes>
 
         <Route
@@ -34,6 +35,7 @@ function App() {
         />
 
       </Routes>
+
     </BrowserRouter>
   );
 }

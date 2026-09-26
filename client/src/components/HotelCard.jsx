@@ -1,34 +1,60 @@
 import { useNavigate } from "react-router-dom";
-import "./HotelCard.css";
 
 function HotelCard({ hotel, onDelete }) {
   const navigate = useNavigate();
 
-  return (
-    <div className="hotel-card">
-      <img
-        src={hotel.image}
-        alt={hotel.title}
-        className="hotel-image"
-        onClick={() => navigate(`/hotel/${hotel.id}`)}
-      />
+  const handleCardClick = () => {
+    navigate(`/hotel/${hotel.id}`);
+  };
 
-      <div className="hotel-content">
-        <h3>{hotel.title}</h3>
+  const handleEdit = (e) => {
+    e.stopPropagation();
+    navigate(`/edit/${hotel.id}`);
+  };
+
+  const handleDelete = (e) => {
+    e.stopPropagation();
+    onDelete(hotel);
+  };
+
+  return (
+    <div
+      className="hotel-card"
+      onClick={handleCardClick}
+    >
+      <div className="hotel-image-container">
+        {hotel.image ? (
+          <img
+            src={hotel.image}
+            alt={hotel.title}
+            className="hotel-image"
+          />
+        ) : (
+          <div className="no-image">
+            No Image Available
+          </div>
+        )}
+      </div>
+
+      <div className="hotel-card-content">
+        <h2 className="hotel-title">
+          {hotel.title}
+        </h2>
 
         <p className="hotel-description">
           {hotel.description}
         </p>
 
         <p className="hotel-price">
-          ₹{hotel.price}
+          ₹{Number(hotel.price).toLocaleString("en-IN")}
+          <span> / night</span>
         </p>
 
-        <div className="hotel-actions">
+        <div className="hotel-card-actions">
           <button
             type="button"
             className="edit-button"
-            onClick={() => navigate(`/edit/${hotel.id}`)}
+            onClick={handleEdit}
           >
             Edit
           </button>
@@ -36,10 +62,7 @@ function HotelCard({ hotel, onDelete }) {
           <button
             type="button"
             className="delete-button"
-            onClick={() => {
-              console.log("DELETE BUTTON CLICKED");
-              onDelete(hotel);
-            }}
+            onClick={handleDelete}
           >
             Delete
           </button>
