@@ -6,14 +6,12 @@ const db = require("./db");
 
 const router = express.Router();
 
-// Create upload folder if it does not exist
 const uploadFolder = path.join(__dirname, "uploads", "hotels");
 
 if (!fs.existsSync(uploadFolder)) {
   fs.mkdirSync(uploadFolder, { recursive: true });
 }
 
-// Image storage settings
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     cb(null, uploadFolder);
@@ -27,10 +25,6 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage });
 
-
-// =========================
-// GET ALL HOTELS
-// =========================
 
 router.get("/", async (req, res) => {
   try {
@@ -53,10 +47,6 @@ router.get("/", async (req, res) => {
   }
 });
 
-
-// =========================
-// GET HOTEL BY ID
-// =========================
 
 router.get("/:id", async (req, res) => {
   try {
@@ -87,11 +77,6 @@ router.get("/:id", async (req, res) => {
   }
 });
 
-
-// =========================
-// ADD HOTEL
-// =========================
-
 router.post("/", upload.single("image"), async (req, res) => {
   try {
     const {
@@ -102,7 +87,6 @@ router.post("/", upload.single("image"), async (req, res) => {
       price
     } = req.body;
 
-    // Required field validation
     if (
       !title ||
       !description ||
@@ -117,7 +101,6 @@ router.post("/", upload.single("image"), async (req, res) => {
       });
     }
 
-    // Latitude validation
     if (
       isNaN(latitude) ||
       Number(latitude) < -90 ||
@@ -129,7 +112,6 @@ router.post("/", upload.single("image"), async (req, res) => {
       });
     }
 
-    // Longitude validation
     if (
       isNaN(longitude) ||
       Number(longitude) < -180 ||
@@ -141,7 +123,6 @@ router.post("/", upload.single("image"), async (req, res) => {
       });
     }
 
-    // Price validation
     if (isNaN(price) || Number(price) <= 0) {
       return res.status(400).json({
         success: false,
@@ -183,10 +164,6 @@ router.post("/", upload.single("image"), async (req, res) => {
 });
 
 
-// =========================
-// UPDATE HOTEL
-// =========================
-
 router.put("/:id", upload.single("image"), async (req, res) => {
   try {
     const {
@@ -197,7 +174,6 @@ router.put("/:id", upload.single("image"), async (req, res) => {
       price
     } = req.body;
 
-    // Check hotel exists
     const oldHotel = await db.query(
       "SELECT * FROM hotels WHERE id = $1",
       [req.params.id]
@@ -210,7 +186,6 @@ router.put("/:id", upload.single("image"), async (req, res) => {
       });
     }
 
-    // Keep old image if no new image is uploaded
     let image = oldHotel.rows[0].image;
 
     if (req.file) {
@@ -253,11 +228,6 @@ router.put("/:id", upload.single("image"), async (req, res) => {
     });
   }
 });
-
-
-// =========================
-// DELETE HOTEL
-// =========================
 
 router.delete("/:id", async (req, res) => {
   try {

@@ -15,7 +15,6 @@ import SuccessPopup from "../components/SuccessPopup";
 
 import "./HotelList.css";
 
-// Backend server URL
 const API_BASE_URL = "http://localhost:5000";
 
 function HotelList() {
@@ -39,9 +38,6 @@ function HotelList() {
 
   const hotelsPerPage = 3;
 
-  // ==============================
-  // FETCH HOTELS
-  // ==============================
   useEffect(() => {
     const loadHotels = async () => {
       try {
@@ -65,14 +61,13 @@ function HotelList() {
             let imageUrl = "";
 
             if (hotel.image) {
-              // If backend already returns a complete URL
+              
               if (
                 hotel.image.startsWith("http")
               ) {
                 imageUrl = hotel.image;
               }
 
-              // If backend returns /uploads/...
               else if (
                 hotel.image.startsWith("/")
               ) {
@@ -80,7 +75,6 @@ function HotelList() {
                   `${API_BASE_URL}${hotel.image}`;
               }
 
-              // Fallback
               else {
                 imageUrl =
                   `${API_BASE_URL}/${hotel.image}`;
@@ -129,9 +123,6 @@ function HotelList() {
     loadHotels();
   }, []);
 
-  // ==============================
-  // RESET PAGE WHEN FILTER CHANGES
-  // ==============================
   useEffect(() => {
     setCurrentPage(1);
   }, [
@@ -140,9 +131,6 @@ function HotelList() {
     maxPrice,
   ]);
 
-  // ==============================
-  // SEARCH + PRICE FILTER
-  // ==============================
   const filteredHotels = hotels.filter(
     (hotel) => {
       const title =
@@ -174,9 +162,6 @@ function HotelList() {
     }
   );
 
-  // ==============================
-  // PAGINATION
-  // ==============================
   const totalPages = Math.ceil(
     filteredHotels.length /
       hotelsPerPage
@@ -192,9 +177,6 @@ function HotelList() {
       startIndex + hotelsPerPage
     );
 
-  // ==============================
-  // DELETE
-  // ==============================
   const handleDeleteClick = (hotel) => {
     setHotelToDelete(hotel);
   };
@@ -237,8 +219,6 @@ function HotelList() {
             `${deletedTitle} deleted successfully.`
           );
 
-          // If deleting the last item
-          // on the current page
           if (
             currentHotels.length === 1 &&
             currentPage > 1
@@ -276,16 +256,10 @@ function HotelList() {
     setHotelToDelete(null);
   };
 
-  // ==============================
-  // SUCCESS POPUP
-  // ==============================
   const handleSuccessClose = () => {
     setSuccessMessage("");
   };
 
-  // ==============================
-  // LOADING
-  // ==============================
   if (loading) {
     return (
       <div className="hotel-list-page">
@@ -299,13 +273,9 @@ function HotelList() {
     );
   }
 
-  // ==============================
-  // UI
-  // ==============================
+
   return (
     <div className="hotel-list-page">
-
-      {/* HEADER */}
       <div className="hotel-header">
         <div>
           <h1>Our Hotels</h1>
@@ -327,7 +297,7 @@ function HotelList() {
         </button>
       </div>
 
-      {/* ERROR MESSAGE */}
+     
       {error && (
         <div className="error-message">
           <strong>Error:</strong>{" "}
@@ -335,7 +305,7 @@ function HotelList() {
         </div>
       )}
 
-      {/* SEARCH + FILTER */}
+      
       <SearchFilter
         searchTerm={searchTerm}
         setSearchTerm={setSearchTerm}
@@ -345,7 +315,7 @@ function HotelList() {
         setMaxPrice={setMaxPrice}
       />
 
-      {/* HOTEL COUNT */}
+      
       <p className="hotel-count">
         {filteredHotels.length} hotel
         {filteredHotels.length !== 1
@@ -354,7 +324,7 @@ function HotelList() {
         found
       </p>
 
-      {/* HOTEL CARDS */}
+      
       {currentHotels.length > 0 ? (
         <div className="hotel-grid">
           {currentHotels.map(
@@ -381,7 +351,7 @@ function HotelList() {
         </div>
       )}
 
-      {/* PAGINATION */}
+      
       {totalPages > 1 && (
         <Pagination
           currentPage={currentPage}
@@ -392,7 +362,6 @@ function HotelList() {
         />
       )}
 
-      {/* DELETE CONFIRMATION */}
       <DeleteConfirm
         hotel={hotelToDelete}
         onConfirm={
@@ -403,7 +372,6 @@ function HotelList() {
         }
       />
 
-      {/* SUCCESS POPUP */}
       {successMessage && (
         <SuccessPopup
           message={successMessage}

@@ -17,9 +17,6 @@ function HotelDetails() {
 
   const [hotel, setHotel] = useState(null);
 
-  // --------------------------------
-  // Hotel Data
-  // --------------------------------
   const hotels = [
     {
       id: 1,
@@ -94,9 +91,6 @@ function HotelDetails() {
     },
   ];
 
-  // --------------------------------
-  // Find Selected Hotel
-  // --------------------------------
   useEffect(() => {
     const selectedHotel = hotels.find(
       (hotel) => hotel.id === Number(id)
@@ -105,9 +99,6 @@ function HotelDetails() {
     setHotel(selectedHotel || null);
   }, [id]);
 
-  // --------------------------------
-  // Hotel Not Found
-  // --------------------------------
   if (!hotel) {
     return (
       <div className="hotel-details-page">
@@ -133,9 +124,6 @@ function HotelDetails() {
     );
   }
 
-  // --------------------------------
-  // Google Maps
-  // --------------------------------
   const mapUrl =
     `https://www.google.com/maps?q=${hotel.latitude},${hotel.longitude}&z=16&output=embed`;
 
@@ -146,15 +134,12 @@ function HotelDetails() {
     );
   };
 
-  // --------------------------------
-  // UI
-  // --------------------------------
   return (
     <div className="hotel-details-page">
 
       <div className="hotel-details-container">
 
-        {/* Back Button */}
+        {}
         <button
           type="button"
           className="back-button"
@@ -163,7 +148,7 @@ function HotelDetails() {
           ← Back to Hotels
         </button>
 
-        {/* Heading */}
+        {}
         <div className="details-heading">
 
           <h1>Hotel Details</h1>
@@ -174,10 +159,10 @@ function HotelDetails() {
 
         </div>
 
-        {/* Hotel Information */}
+        {}
         <div className="hotel-details-card">
 
-          {/* Image */}
+          
           <div className="details-image-container">
 
             <img
@@ -188,12 +173,10 @@ function HotelDetails() {
 
           </div>
 
-          {/* Information */}
           <div className="hotel-info">
 
             <h2>{hotel.title}</h2>
 
-            {/* Location */}
             <div className="location-box">
 
               <span className="location-label">
@@ -204,7 +187,6 @@ function HotelDetails() {
 
             </div>
 
-            {/* Price */}
             <div className="price-box">
 
               <span>
@@ -217,7 +199,6 @@ function HotelDetails() {
 
             </div>
 
-            {/* Description */}
             <div className="details-section">
 
               <h3>Description</h3>
@@ -228,7 +209,6 @@ function HotelDetails() {
 
             </div>
 
-            {/* Coordinates */}
             <div className="details-section">
 
               <h3>Coordinates</h3>
@@ -259,7 +239,6 @@ function HotelDetails() {
 
         </div>
 
-        {/* Map */}
         <div className="map-section">
 
           <div className="map-heading">

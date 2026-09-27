@@ -7,10 +7,6 @@ const db = require("./db");
 
 const router = express.Router();
 
-// =====================================
-// IMAGE UPLOAD FOLDER
-// =====================================
-
 const uploadFolder = path.join(
   __dirname,
   "uploads",
@@ -22,10 +18,6 @@ if (!fs.existsSync(uploadFolder)) {
     recursive: true,
   });
 }
-
-// =====================================
-// MULTER CONFIGURATION
-// =====================================
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
@@ -46,9 +38,6 @@ const upload = multer({
   storage: storage,
 });
 
-// =====================================
-// GET ALL HOTELS
-// =====================================
 
 router.get("/", async (req, res) => {
   try {
@@ -74,9 +63,6 @@ router.get("/", async (req, res) => {
   }
 });
 
-// =====================================
-// GET HOTEL BY ID
-// =====================================
 
 router.get("/:id", async (req, res) => {
   try {
@@ -109,9 +95,6 @@ router.get("/:id", async (req, res) => {
   }
 });
 
-// =====================================
-// ADD HOTEL
-// =====================================
 
 router.post(
   "/",
@@ -126,9 +109,6 @@ router.post(
         price,
       } = req.body;
 
-      // -----------------------------
-      // REQUIRED FIELD VALIDATION
-      // -----------------------------
 
       if (
         !title ||
@@ -145,9 +125,7 @@ router.post(
         });
       }
 
-      // -----------------------------
-      // LATITUDE VALIDATION
-      // -----------------------------
+ 
 
       if (
         isNaN(latitude) ||
@@ -161,9 +139,6 @@ router.post(
         });
       }
 
-      // -----------------------------
-      // LONGITUDE VALIDATION
-      // -----------------------------
 
       if (
         isNaN(longitude) ||
@@ -177,9 +152,6 @@ router.post(
         });
       }
 
-      // -----------------------------
-      // PRICE VALIDATION
-      // -----------------------------
 
       if (
         isNaN(price) ||
@@ -192,16 +164,10 @@ router.post(
         });
       }
 
-      // -----------------------------
-      // IMAGE PATH
-      // -----------------------------
 
       const image =
         `/uploads/hotels/${req.file.filename}`;
 
-      // -----------------------------
-      // INSERT INTO DATABASE
-      // -----------------------------
 
       const result = await db.query(
         `INSERT INTO hotels
@@ -247,9 +213,6 @@ router.post(
   }
 );
 
-// =====================================
-// UPDATE HOTEL
-// =====================================
 
 router.put(
   "/:id",
@@ -264,9 +227,6 @@ router.put(
         price,
       } = req.body;
 
-      // -----------------------------
-      // FIND OLD HOTEL
-      // -----------------------------
 
       const oldHotel =
         await db.query(
@@ -281,25 +241,16 @@ router.put(
         });
       }
 
-      // -----------------------------
-      // KEEP OLD IMAGE
-      // -----------------------------
 
       let image =
         oldHotel.rows[0].image;
 
-      // -----------------------------
-      // NEW IMAGE IF PROVIDED
-      // -----------------------------
 
       if (req.file) {
         image =
           `/uploads/hotels/${req.file.filename}`;
       }
 
-      // -----------------------------
-      // UPDATE DATABASE
-      // -----------------------------
 
       const result = await db.query(
         `UPDATE hotels
@@ -345,17 +296,12 @@ router.put(
   }
 );
 
-// =====================================
-// DELETE HOTEL
-// =====================================
 
 router.delete(
   "/:id",
   async (req, res) => {
     try {
-      // -----------------------------
-      // FIND HOTEL
-      // -----------------------------
+
 
       const hotel =
         await db.query(
@@ -370,9 +316,6 @@ router.delete(
         });
       }
 
-      // -----------------------------
-      // DELETE DATABASE RECORD
-      // -----------------------------
 
       await db.query(
         "DELETE FROM hotels WHERE id = $1",
@@ -400,8 +343,5 @@ router.delete(
   }
 );
 
-// =====================================
-// EXPORT ROUTER
-// =====================================
 
 module.exports = router;

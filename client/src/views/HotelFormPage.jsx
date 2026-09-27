@@ -33,9 +33,6 @@ function HotelFormPage() {
   const [loading, setLoading] = useState(false);
   const [pageLoading, setPageLoading] = useState(false);
 
-  // =========================
-  // LOAD HOTEL FOR EDIT
-  // =========================
 
   useEffect(() => {
     if (!isEditMode) return;
@@ -80,9 +77,6 @@ function HotelFormPage() {
     loadHotel();
   }, [id, isEditMode, navigate]);
 
-  // =========================
-  // INPUT CHANGE
-  // =========================
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -98,9 +92,6 @@ function HotelFormPage() {
     }));
   };
 
-  // =========================
-  // IMAGE CHANGE
-  // =========================
 
   const handleImageChange = (e) => {
     const selectedImage = e.target.files[0];
@@ -119,9 +110,6 @@ function HotelFormPage() {
     }));
   };
 
-  // =========================
-  // VALIDATION
-  // =========================
 
   const validateForm = () => {
     const newErrors = {};
@@ -171,7 +159,7 @@ function HotelFormPage() {
         "Price must be greater than 0.";
     }
 
-    // Image required only while adding
+
     if (!isEditMode && !image) {
       newErrors.image =
         "Hotel image is required.";
@@ -182,9 +170,6 @@ function HotelFormPage() {
     return Object.keys(newErrors).length === 0;
   };
 
-  // =========================
-  // SUBMIT
-  // =========================
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -226,8 +211,6 @@ function HotelFormPage() {
       if (image) {
         data.append("image", image);
       }
-
-      // EDIT
       if (isEditMode) {
 
         const response =
@@ -242,8 +225,6 @@ function HotelFormPage() {
         }
 
       } else {
-
-        // ADD
 
         const response =
           await addHotel(data);
@@ -275,17 +256,11 @@ function HotelFormPage() {
     }
   };
 
-  // =========================
-  // CANCEL
-  // =========================
+
 
   const handleCancel = () => {
     navigate("/");
   };
-
-  // =========================
-  // PAGE LOADING
-  // =========================
 
   if (pageLoading) {
     return (
@@ -303,9 +278,6 @@ function HotelFormPage() {
     );
   }
 
-  // =========================
-  // FORM UI
-  // =========================
 
   return (
     <div className="hotel-form-page">
@@ -332,8 +304,6 @@ function HotelFormPage() {
           className="hotel-form"
           onSubmit={handleSubmit}
         >
-
-          {/* IMAGE */}
 
           <div className="form-group">
 
@@ -407,8 +377,6 @@ function HotelFormPage() {
 
           </div>
 
-          {/* TITLE */}
-
           <div className="form-group">
 
             <label htmlFor="title">
@@ -437,8 +405,6 @@ function HotelFormPage() {
 
           </div>
 
-          {/* DESCRIPTION */}
-
           <div className="form-group">
 
             <label htmlFor="description">
@@ -466,8 +432,6 @@ function HotelFormPage() {
             )}
 
           </div>
-
-          {/* LOCATION */}
 
           <div className="location-row">
 
@@ -531,8 +495,6 @@ function HotelFormPage() {
 
           </div>
 
-          {/* PRICE */}
-
           <div className="form-group">
 
             <label htmlFor="price">
@@ -567,8 +529,6 @@ function HotelFormPage() {
             )}
 
           </div>
-
-          {/* BUTTONS */}
 
           <div className="form-actions">
 
