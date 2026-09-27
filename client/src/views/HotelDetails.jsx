@@ -1,114 +1,110 @@
-
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
-import hotel1 from "../assets/images/hotel1.jpeg";
-import hotel2 from "../assets/images/hotel2.jpeg";
-import hotel3 from "../assets/images/hotel3.jpeg";
-import hotel4 from "../assets/images/hotel4.jpeg";
-import hotel5 from "../assets/images/hotel5.jpeg";
-import hotel6 from "../assets/images/hotel6.jpeg";
+import { getHotelById } from "../services/hotelApi";
 
 import "./HotelDetails.css";
+
+const API_BASE_URL = "http://localhost:5000";
 
 function HotelDetails() {
   const { id } = useParams();
   const navigate = useNavigate();
 
   const [hotel, setHotel] = useState(null);
-
-  const hotels = [
-    {
-      id: 1,
-      image: hotel1,
-      title: "The Taj Mahal Palace",
-      location: "Apollo Bunder, Colaba, Mumbai, Maharashtra",
-      description:
-        "A landmark luxury hotel overlooking the Gateway of India in Mumbai.",
-      price: 25000,
-      latitude: 18.921778,
-      longitude: 72.833285,
-    },
-
-    {
-      id: 2,
-      image: hotel2,
-      title: "ITC Grand Chola",
-      location: "63, Anna Salai, Guindy, Chennai, Tamil Nadu",
-      description:
-        "A luxury hotel in Chennai inspired by the architectural heritage of the Chola dynasty.",
-      price: 18000,
-      latitude: 13.010574,
-      longitude: 80.220194,
-    },
-
-    {
-      id: 3,
-      image: hotel3,
-      title: "The Leela Palace Bengaluru",
-      location: "23, Old Airport Road, Bengaluru, Karnataka",
-      description:
-        "A luxury palace-style hotel located on Old Airport Road in Bengaluru.",
-      price: 22000,
-      latitude: 12.960569,
-      longitude: 77.648481,
-    },
-
-    {
-      id: 4,
-      image: hotel4,
-      title: "Taj Falaknuma Palace",
-      location: "Falaknuma, Hyderabad, Telangana",
-      description:
-        "A historic palace property offering a royal luxury experience in Hyderabad.",
-      price: 30000,
-      latitude: 17.33099,
-      longitude: 78.46715,
-    },
-
-    {
-      id: 5,
-      image: hotel5,
-      title: "The Oberoi Udaivilas",
-      location: "Haridasji Ki Magri, Udaipur, Rajasthan",
-      description:
-        "A luxury resort overlooking Lake Pichola in the historic city of Udaipur.",
-      price: 35000,
-      latitude: 24.57718,
-      longitude: 73.67253,
-    },
-
-    {
-      id: 6,
-      image: hotel6,
-      title: "The Tamara Coorg",
-      location: "Kabbinakad Estate, Yavakapadi, Coorg, Karnataka",
-      description:
-        "A nature-focused luxury resort surrounded by the hills and plantations of Coorg.",
-      price: 16000,
-      latitude: 12.22578,
-      longitude: 75.64938,
-    },
-  ];
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
   useEffect(() => {
-    const selectedHotel = hotels.find(
-      (hotel) => hotel.id === Number(id)
-    );
+    const loadHotel = async () => {
+      try {
+        setLoading(true);
+        setError("");
 
-    setHotel(selectedHotel || null);
+        const data = await getHotelById(id);
+
+        console.log("Hotel details response:", data);
+
+        if (!data.success) {
+          setError(
+            data.message || "Hotel not found."
+          );
+          setHotel(null);
+          return;
+        }
+
+        let imageUrl = "";
+
+        if (data.hotel.image) {
+          if (
+            data.hotel.image.startsWith("http")
+          ) {
+            imageUrl = data.hotel.image;
+          } else if (
+            data.hotel.image.startsWith("/")
+          ) {
+            imageUrl =
+              `${API_BASE_URL}${data.hotel.image}`;
+          } else {
+            imageUrl =
+              `${API_BASE_URL}/${data.hotel.image}`;
+          }
+        }
+
+        const formattedHotel = {
+          ...data.hotel,
+          price: Number(data.hotel.price),
+          latitude: Number(data.hotel.latitude),
+          longitude: Number(data.hotel.longitude),
+          image: imageUrl,
+        };
+
+        setHotel(formattedHotel);
+
+      } catch (error) {
+        console.error(
+          "GET HOTEL DETAILS ERROR:",
+          error
+        );
+
+        setHotel(null);
+
+        setError(
+          error.response?.data?.message ||
+            error.message ||
+            "Failed to fetch hotel."
+        );
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadHotel();
   }, [id]);
+
+  if (loading) {
+    return (
+      <div className="hotel-details-page">
+        <div className="hotel-not-found">
+          <h2>Loading Hotel...</h2>
+          <p>
+            Fetching hotel details from the server.
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   if (!hotel) {
     return (
       <div className="hotel-details-page">
-
         <div className="hotel-not-found">
 
           <h2>Hotel Not Found</h2>
 
           <p>
-            The hotel you are looking for does not exist.
+            {error ||
+              "The hotel you are looking for does not exist."}
           </p>
 
           <button
@@ -119,7 +115,6 @@ function HotelDetails() {
           </button>
 
         </div>
-
       </div>
     );
   }
@@ -139,7 +134,6 @@ function HotelDetails() {
 
       <div className="hotel-details-container">
 
-        {}
         <button
           type="button"
           className="back-button"
@@ -148,7 +142,6 @@ function HotelDetails() {
           ← Back to Hotels
         </button>
 
-        {}
         <div className="details-heading">
 
           <h1>Hotel Details</h1>
@@ -159,17 +152,21 @@ function HotelDetails() {
 
         </div>
 
-        {}
         <div className="hotel-details-card">
 
-          
           <div className="details-image-container">
 
-            <img
-              src={hotel.image}
-              alt={`${hotel.title} hotel`}
-              className="details-image"
-            />
+            {hotel.image ? (
+              <img
+                src={hotel.image}
+                alt={`${hotel.title} hotel`}
+                className="details-image"
+              />
+            ) : (
+              <div className="no-image">
+                No Image Available
+              </div>
+            )}
 
           </div>
 
@@ -183,7 +180,10 @@ function HotelDetails() {
                 📍 Location
               </span>
 
-              <p>{hotel.location}</p>
+              <p>
+                {hotel.location ||
+                  "Location information not provided."}
+              </p>
 
             </div>
 
@@ -194,7 +194,10 @@ function HotelDetails() {
               </span>
 
               <strong>
-                ₹{Number(hotel.price).toLocaleString("en-IN")}
+                ₹
+                {Number(
+                  hotel.price
+                ).toLocaleString("en-IN")}
               </strong>
 
             </div>
@@ -285,4 +288,3 @@ function HotelDetails() {
 }
 
 export default HotelDetails;
-
